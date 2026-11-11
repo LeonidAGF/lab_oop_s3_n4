@@ -11,9 +11,11 @@ public:
 	explicit virtual operator double() const = 0;
 	friend std::ostream& operator<<(std::ostream&, const shape&);
 	virtual bool operator==(const shape& s) const final;
+	virtual bool operator<(const shape& s) const final;
+	virtual shape* clone() const = 0;
 };
 
-std::ostream& operator<<(std::ostream& os, const shape& s) {
+inline std::ostream& operator<<(std::ostream& os, const shape& s) {
 	s.print(os);
 	return os;
 }
@@ -28,6 +30,7 @@ public:
 	void print(std::ostream& os) const override;
 	bool fitsInBox(double V) const override;
 	explicit operator double() const override;
+	Sphere* clone() const override;
 };
 
 class Cube final :public shape {
@@ -40,6 +43,7 @@ public:
 	void print(std::ostream& os) const override;
 	bool fitsInBox(double V) const override;
 	explicit operator double() const override;
+	Cube* clone() const override;
 };
 
 //конус
@@ -53,4 +57,5 @@ public:
 	void print(std::ostream& os) const override;
 	bool fitsInBox(double V) const override;
 	explicit operator double() const override;
+	Cone* clone() const override;
 };

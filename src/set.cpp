@@ -1,13 +1,24 @@
 #include "set.hpp"
 
 Set::Set():size_(0), capacity_(1){
-	data_ = new shape[capacity_];
+	data_ = new shape*[capacity_];
 }
 Set::Set(const Set& x):size_(x.size_), capacity_(x.capacity_) {
-	data_ = new shape[capacity_];
-	std::memcpy(data_, x.data_, size_*sizeof(shape));
+	data_ = new shape*[capacity_];
+	for (size_t i = 0; i < x.size_; ++i) {
+		data_[i] = x.data_[i]->clone();
+	}
 }
-Set::Set(Set&& x) noexcept : data_(x.data_), size_(x.size_), capacity_(x.capacity_)  {
+Set::Set(Set&& x) noexcept :size_(x.size_), capacity_(x.capacity_)  {
+
+	if (*this == x)
+		return;
+
+	for (size_t i = 0; i < size_; ++i) {
+		delete data_[i];
+	}
+	data_ = x.data_;
+
 	x.data_ = nullptr;
 	x.capacity_ = 0;
 	x.size_ = 0;
@@ -37,40 +48,43 @@ Set& Set::operator=(Set&& x) noexcept {
 	return *this;
 }
 Set::~Set() {
+
+	for (size_t i = 0; i < size_; ++i) {
+		delete data_[i];
+		data_[i] = nullptr;
+	}
 	delete[] data_;
 	data_ = nullptr;
 }
 
-bool Set::contains(const shape& x) const {
+bool Set::contains(shape* x) const {
+	if (!x)
+		return false;
 	if (data_) {
 		size_t L = 0, R = size_, M;
 		while (L < R) {
 			M = (L + R) / 2;
-			if (data_[M] < x)
+			if (*data_[M] < *x)
 				L = M+1;
-			else if (data_[M] == x) {
+			else if (*data_[M] == *x) {
 				return 1;
 			}
 			else 
 				R = M;
 		}
-		return L < size_ && data_[L] == x;
+		return L < size_ && *data_[L] == *x;
 	}
 	return 0;
 }
 
-bool Set::add(const shape& x) {
+bool Set::add(shape* x) {
 	if (contains(x))
 		return false;
 
-	shape el;
-	el.latitude = x.latitude;
-	el.longitude = x.longitude;
-
 	if (size_ == capacity_) {
 		size_t new_capacity = (capacity_>0? capacity_:1) *2;
-		shape* new_data = new shape[new_capacity];
-		std::memcpy(new_data, data_, size_*sizeof(shape));
+		shape** new_data = new shape*[new_capacity];
+		std::memcpy(new_data, data_, size_*sizeof(shape*));
 		delete[] data_;
 		data_ = new_data;
 		capacity_ = new_capacity;
@@ -79,9 +93,9 @@ bool Set::add(const shape& x) {
 	size_t L = 0, R = size_, M;
 	while (L < R) {
 		M = (L + R) / 2;
-		if (data_[M] < x)
+		if (*data_[M] < *x)
 			L = M + 1;
-		else if (data_[M] == x) {
+		else if (*data_[M] == *x) {
 			return 0;
 		}
 		else
@@ -90,28 +104,34 @@ bool Set::add(const shape& x) {
 	
 	for (size_t i = size_; i > R; --i)
 		data_[i] = data_[i - 1];
-	data_[R] = el;
+	data_[R] = x;
 	size_++;
 	return true;
 }
-bool Set::remove(const shape& x) {
+bool Set::remove(shape* x) {
+	if (!x)
+		return false;
 	size_t L = 0, R = size_,M;
 	while (L < R) {
 		M = L + (R - L) / 2;
-		if (data_[M] < x)
+		if (*data_[M] < *x)
 			L = M + 1;
 		else
 			R = M;
 	}
-	if (L >= size_ || !(data_[L] == x))
+	if (L >= size_ || !(*data_[L] == *x))
 		return false;
+
+	delete data_[L];
+	data_[L] = nullptr;
+
 	for (size_t i = L + 1; i < size_; ++i)
 		data_[i - 1] = data_[i];
 	--size_;
 	return true;
 }
 
-bool Set::operator()(const shape& x) const {
+bool Set::operator()(shape* x) const {
 	return contains(x);
 }
 std::size_t Set::size() const {
@@ -120,73 +140,15 @@ std::size_t Set::size() const {
 bool Set::empty() const {
 	return size_ == 0;
 }
-Set& Set::operator+=(const shape& x) {
+Set& Set::operator+=(shape* x) {
 	add(x);
 	return *this;
 }
-Set& Set::operator-=(const shape& x) {
+Set& Set::operator-=(shape* x) {
 	remove(x);
 	return *this;
 }
-Set Set::operator|(const Set& x) const {
-	Set s;
-	size_t i = 0, j = 0;
-	while (i < size_ && j < x.size_) {
-		if (data_[i] < x.data_[j]) {
-			s.add(data_[i]);
-			++i;
-		}
-		else if (x.data_[j] < data_[i]) {
-			s.add(x.data_[j]);
-			++j;
-		}
-		else {
-			s.add(data_[i]);
-			++i;
-			++j;
-		}
-	}
-	while (i < size_) 
-		s.add(data_[i++]);
-	while (j < x.size_)
-		s.add(x.data_[j++]);
-	return s;
-}
-Set Set::operator&(const Set& x) const {
-	Set s;
-	size_t i = 0, j = 0;
-	while (i < size_ && j < x.size_) {
-		if (data_[i] < x.data_[j])
-			++i;
-		else if (x.data_[j] < data_[i])
-			++j;
-		else {
-			s.add(data_[i]);
-			++i;
-			++j;
-		}
-	}
-	return s;
-}
-Set Set::operator-(const Set& x) const {
-	Set s;
-	size_t i = 0, j = 0;
-	while (i < size_ && j < x.size_) {
-		if (data_[i] < x.data_[j]) {
-			s.add(data_[i]);
-			++i;
-		}	
-		else if (x.data_[j] < data_[i])
-			++j;
-		else {
-			++i;
-			++j;
-		}
-	}
-	while (i < size_) 
-		s.add(data_[i++]);
-	return s;
-}
+
 bool Set::operator==(const Set& x) const {
 	bool res = 1;
 	if (size_ != x.size_) {
@@ -194,7 +156,7 @@ bool Set::operator==(const Set& x) const {
 	}
 	else {
 		for (size_t i = 0; i < size_; ++i) {
-			res = data_[i] == x.data_[i];
+			res = *data_[i] == *x.data_[i];
 			if (!res)
 				break;
 		}
@@ -205,27 +167,9 @@ bool Set::operator!=(const Set& x) const {
 	return !((*this)==x);
 }
 
-bool Set::operator<=(const Set& x) const {
-	size_t i = 0, j = 0;
-	while (i < size_ && j < x.size_) {
-		if (data_[i] < x.data_[j])
-			return false;
-		else if (x.data_[j] < data_[i])
-			++j;
-		else {
-			++i;
-			++j;
-		}
-	}
-	return i == size_;
-}
-
 std::ostream& operator<<(std::ostream& os, const Set& s) {
-	os << "{";
-	for (std::size_t i = 0; i < s.size_; ++i) {
-		if (i != 0) os << ", ";
-		os << '(' << s.data_[i].latitude
-			<< ", " << s.data_[i].longitude << ')';
-	}
+	os << "{ ";
+	for (size_t i = 0; i < s.size_; ++i)
+		os << (*s.data_[i]) << "; ";
 	return os << "}";
 }
