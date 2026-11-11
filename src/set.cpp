@@ -1,11 +1,11 @@
 #include "set.hpp"
 
 Set::Set():size_(0), capacity_(1){
-	data_ = new GeoCoordinate[capacity_];
+	data_ = new shape[capacity_];
 }
 Set::Set(const Set& x):size_(x.size_), capacity_(x.capacity_) {
-	data_ = new GeoCoordinate[capacity_];
-	std::memcpy(data_, x.data_, size_*sizeof(GeoCoordinate));
+	data_ = new shape[capacity_];
+	std::memcpy(data_, x.data_, size_*sizeof(shape));
 }
 Set::Set(Set&& x) noexcept : data_(x.data_), size_(x.size_), capacity_(x.capacity_)  {
 	x.data_ = nullptr;
@@ -41,7 +41,7 @@ Set::~Set() {
 	data_ = nullptr;
 }
 
-bool Set::contains(const GeoCoordinate& x) const {
+bool Set::contains(const shape& x) const {
 	if (data_) {
 		size_t L = 0, R = size_, M;
 		while (L < R) {
@@ -59,18 +59,18 @@ bool Set::contains(const GeoCoordinate& x) const {
 	return 0;
 }
 
-bool Set::add(const GeoCoordinate& x) {
+bool Set::add(const shape& x) {
 	if (contains(x))
 		return false;
 
-	GeoCoordinate el;
+	shape el;
 	el.latitude = x.latitude;
 	el.longitude = x.longitude;
 
 	if (size_ == capacity_) {
 		size_t new_capacity = (capacity_>0? capacity_:1) *2;
-		GeoCoordinate* new_data = new GeoCoordinate[new_capacity];
-		std::memcpy(new_data, data_, size_*sizeof(GeoCoordinate));
+		shape* new_data = new shape[new_capacity];
+		std::memcpy(new_data, data_, size_*sizeof(shape));
 		delete[] data_;
 		data_ = new_data;
 		capacity_ = new_capacity;
@@ -94,7 +94,7 @@ bool Set::add(const GeoCoordinate& x) {
 	size_++;
 	return true;
 }
-bool Set::remove(const GeoCoordinate& x) {
+bool Set::remove(const shape& x) {
 	size_t L = 0, R = size_,M;
 	while (L < R) {
 		M = L + (R - L) / 2;
@@ -111,7 +111,7 @@ bool Set::remove(const GeoCoordinate& x) {
 	return true;
 }
 
-bool Set::operator()(const GeoCoordinate& x) const {
+bool Set::operator()(const shape& x) const {
 	return contains(x);
 }
 std::size_t Set::size() const {
@@ -120,11 +120,11 @@ std::size_t Set::size() const {
 bool Set::empty() const {
 	return size_ == 0;
 }
-Set& Set::operator+=(const GeoCoordinate& x) {
+Set& Set::operator+=(const shape& x) {
 	add(x);
 	return *this;
 }
-Set& Set::operator-=(const GeoCoordinate& x) {
+Set& Set::operator-=(const shape& x) {
 	remove(x);
 	return *this;
 }

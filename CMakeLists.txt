@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(laba_n4_lib
     src/set.cpp
+    src/3D.cpp
 )
 
 target_include_directories(laba_n4_lib PUBLIC
