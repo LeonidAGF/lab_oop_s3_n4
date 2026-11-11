@@ -14,7 +14,7 @@ double Sphere::radius() const {
 	return this->rad;
 }
 double Sphere::metric() const {
-	return (4 / 3) * 3.14 * std::pow(radius(), 3);
+	return (4.0 / 3.0) * 3.14 * std::pow(radius(), 3);
 }
 void Sphere::print(std::ostream& os) const {
 	os << "Sphere: r=" << radius();
@@ -56,13 +56,13 @@ double Cone::slantHeight() const {
 	return std::sqrt((radius * radius) + (height * height));
 }
 double Cone::metric() const {
-	return (1.0 / 3) * 3.14 * radius * radius * height;
+	return (1.0 / 3.0) * 3.14 * radius * radius * height;
 }
 void Cone::print(std::ostream& os) const {
 	os << "Cone: r=" << radius << " h=" << height;
 }
 bool Cone::fitsInBox(double V) const {
-	return  std::pow(V, 1.0 / 3) - std::max(2*radius,height) >= 0.0001;
+	return  std::pow(V, 1.0 / 3.0) - std::max(2*radius,height) >= 0.0001;
 }
 
 Cone::operator double() const {
