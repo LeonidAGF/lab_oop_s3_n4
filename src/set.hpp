@@ -20,7 +20,9 @@ public:
 	Set& operator-=(shape* x);
 	bool operator==(const Set& x) const;
 	bool operator!=(const Set& x) const;
+	double sum_metrics() const;
 	friend std::ostream& operator<<(std::ostream&, const Set&);
+	
 
 private:
 	shape** data_ = nullptr;

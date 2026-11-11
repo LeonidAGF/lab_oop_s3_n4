@@ -15,5 +15,7 @@ int main()
 
 	std::cout << se << std::endl;
 
+	std::cout << se.sum_metrics();
+
 	return 0;
 }

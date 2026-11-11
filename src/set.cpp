@@ -173,3 +173,10 @@ std::ostream& operator<<(std::ostream& os, const Set& s) {
 		os << (*s.data_[i]) << "; ";
 	return os << "}";
 }
+
+double Set::sum_metrics() const {
+	double res = 0;
+	for (size_t i = 0; i < size_; ++i)
+		res += data_[i]->metric();
+	return res;
+}
