@@ -1,7 +1,11 @@
 #include "3D.hpp"
 #include <math.h>
 
-explicit Sphere::Sphere(double r):rad(r) {}
+bool shape::operator==(const shape& s) const {
+	return std::abs(metric() - s.metric()) <= 0.0001;
+}
+
+Sphere::Sphere(double r):rad(r) {}
 double Sphere::radius() const {
 	return this->rad;
 }
@@ -14,8 +18,11 @@ void Sphere::print(std::ostream& os) const {
 bool Sphere::fitsInBox(double V) const {
 	return std::pow(V, 1.0 / 3)-(2 * radius()) >= 0.0001 ;
 }
+Sphere::operator double() const {
+	return metric();
+}
 
-explicit Cube::Cube(double a): ed(a) {}
+Cube::Cube(double a): ed(a) {}
 double Cube::edge() const {
 	return ed;
 }
@@ -29,7 +36,11 @@ bool Cube::fitsInBox(double V) const {
 	return  std::pow(V, 1.0 / 3) - edge() >= 0.0001;
 }
 
-explicit Cone::Cone(double r, double h): radius(r), height(h){}
+Cube::operator double() const {
+	return metric();
+}
+
+Cone::Cone(double r, double h): radius(r), height(h){}
 double Cone::slantHeight() const {
 	return std::sqrt((radius * radius) + (height * height));
 }
@@ -41,4 +52,8 @@ void Cone::print(std::ostream& os) const {
 }
 bool Cone::fitsInBox(double V) const {
 	return  std::pow(V, 1.0 / 3) - std::max(2*radius,height) >= 0.0001;
+}
+
+Cone::operator double() const {
+	return metric();
 }
